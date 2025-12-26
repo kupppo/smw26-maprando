@@ -10,13 +10,15 @@ export default async function InertiaAPI(
       authorization: `Bearer ${inertiaToken}`,
     },
   }
+  const bypassProtection = process.env.VERCEL_PROTECTION_BYPASS
+  if (bypassProtection) {
+    options.headers['X-Vercel-Protection-Bypass'] = bypassProtection
+  }
   if (method === 'POST' || method === 'PUT') {
     options.headers['Content-Type'] = 'application/json'
     options.body = JSON.stringify(payload)
   }
-  console.log('fetching', `${inertiaUrl}/${endpoint}`)
-  const req = await fetch(`${inertiaUrl}/${endpoint}`, options)
-  console.log('req', req.status, req.statusText)
+  const req = await fetch(`${inertiaUrl}${endpoint}`, options)
   const data = await req.json()
   if (!req.ok) {
     console.log('ERRORS', data.errors)
