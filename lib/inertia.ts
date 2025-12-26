@@ -14,7 +14,9 @@ export default async function InertiaAPI(
     options.headers['Content-Type'] = 'application/json'
     options.body = JSON.stringify(payload)
   }
+  console.log('fetching', `${inertiaUrl}/${endpoint}`)
   const req = await fetch(`${inertiaUrl}/${endpoint}`, options)
+  console.log('req', req.status, req.statusText)
   const data = await req.json()
   if (!req.ok) {
     console.log('ERRORS', data.errors)
