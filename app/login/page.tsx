@@ -4,6 +4,8 @@ import { env } from '@/env'
 import InertiaAPI from '@/lib/inertia'
 import UserSelect from './user-select'
 
+export const dynamic = 'force-dynamic'
+
 export default async function LoginPage() {
   const tournamentSlug = env.TOURNAMENT_SLUG
   const users = await InertiaAPI(`/api/tournaments/${tournamentSlug}/users`, {
