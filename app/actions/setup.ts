@@ -30,7 +30,7 @@ export const sendLoginLink = async (id: string, returnTo: string | null) => {
   }
 
   const loginLink = new URL(
-    `${env.PARTYKIT_PUBLIC_URL}/auth/${id}/${authField.value}`
+    `${env.NEXT_PUBLIC_URL}/auth/${id}/${authField.value}`
   )
   if (returnTo) {
     loginLink.searchParams.set('returnTo', returnTo)
