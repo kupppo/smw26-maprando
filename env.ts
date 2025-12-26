@@ -5,14 +5,14 @@ export const env = createEnv({
   server: {
     ADMINS: z.string(),
     INERTIA_TOKEN: z.string(),
-    INERTIA_URL: z.string().default('http://localhost:4000'),
-    PARTYKIT_HOST: z.string().default('127.0.0.1:1999'),
+    INERTIA_URL: z.string(),
+    PARTYKIT_HOST: z.string(),
     PARTYKIT_URL: z.url(),
     SIGNING_SECRET: z.string(),
     TOURNAMENT_SLUG: z.string(),
   },
   client: {
-    NEXT_PUBLIC_URL: z.string().default('http://localhost:4000'),
+    NEXT_PUBLIC_URL: z.string(),
   },
   runtimeEnv: {
     ADMINS: process.env.ADMINS,
