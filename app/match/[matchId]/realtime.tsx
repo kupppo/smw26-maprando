@@ -12,7 +12,7 @@ import { CardContent, CardFooter } from '@/components/ui/card'
 import { env } from '@/env'
 import { cn } from '@/lib/utils'
 
-const { PARTYKIT_HOST } = env
+const { NEXT_PUBLIC_PARTYKIT_HOST } = env
 
 const Pending = () => <span className="italic text-foreground/20">-</span>
 
@@ -341,7 +341,7 @@ export default function RealtimeUpdates({
     fallbackData,
   })
   const socket = usePartySocket({
-    host: PARTYKIT_HOST,
+    host: NEXT_PUBLIC_PARTYKIT_HOST,
     room: matchId,
     onMessage(event) {
       console.log('msg received:', event.data)

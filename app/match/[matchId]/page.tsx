@@ -13,8 +13,6 @@ export default async function MatchPage({
 }) {
   const { matchId } = await params
 
-  const isPlayer = false
-
   const tournamentSlug = process.env.TOURNAMENT_SLUG
   const match = await InertiaAPI(
     `/api/tournaments/${tournamentSlug}/matches/${matchId}`,
