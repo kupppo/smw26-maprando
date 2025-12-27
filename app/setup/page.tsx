@@ -41,7 +41,7 @@ export default async function RunnerSetup() {
     <div className="min-h-screen flex flex-col justify-center items-center w-full md:w-1/2 max-w-[500px] mx-auto px-4 text-center gap-y-8">
       <div>
         <h1 className="text-4xl leading-none">
-          Map Rando Multicategory Tournament
+          Super Metroid Winter 2026 Map Rando Tournament
         </h1>
         <div className="mt-4">
           <AnimatedNamePill name={user.name} />
