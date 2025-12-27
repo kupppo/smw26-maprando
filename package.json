@@ -6,7 +6,7 @@
     "dev": "next dev --turbopack",
     "dev:partykit": "partykit dev --live",
     "deploy:partykit": "partykit deploy",
-    "inngest": "inngest-cli dev --no-discovery -u http://localhost:4000/api/inngest -p 4100",
+    "inngest": "pnpm dlx inngest-cli dev --no-discovery -u http://localhost:4000/api/inngest -p 4100",
     "build": "next build",
     "start": "next start",
     "test": "jest",

@@ -12,6 +12,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import InertiaAPI from '@/lib/inertia'
+import ConfirmationBtn from './confirmation-btn'
 import EditSeedForm from './form'
 import SetupMatch from './setup'
 
@@ -81,7 +82,7 @@ export default async function AdminPage() {
                 <TableCell className="font-mono">{user.id}</TableCell>
                 <TableCell>{user.name}</TableCell>
                 <TableCell className="font-mono">
-                  {confirmed && <CheckIcon />}
+                  {confirmed ? <CheckIcon /> : <ConfirmationBtn id={user.id} />}
                 </TableCell>
               </TableRow>
             )

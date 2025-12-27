@@ -1,5 +1,6 @@
 import { NonRetriableError } from 'inngest'
 import { RaceModes } from '@/app/config/tournament'
+import { env } from '@/env'
 import InertiaAPI from '@/lib/inertia'
 import { send as inngestSend } from '@/lib/inngest'
 import { inngest } from '../client'
@@ -267,6 +268,49 @@ export const handleModeSelection = inngest.createFunction(
           goal: mode.slug,
         },
       })
+    })
+  }
+)
+
+export const sendConfirmationMessage = inngest.createFunction(
+  { id: 'send-confirmation-msg' },
+  { event: 'super-metroid-winter-2026-map-rando-tournament/confirmation.send' },
+  async ({ event, step }) => {
+    const data = event.data as { userId: string }
+    const tournamentSlug = env.TOURNAMENT_SLUG
+    const user = await step.run('get-user', async () => {
+      const record = await InertiaAPI(
+        `/api/tournaments/${tournamentSlug}/users/${data.userId}`,
+        {
+          method: 'GET',
+        }
+      )
+      if (!record) {
+        throw new NonRetriableError('User not found')
+      }
+      return record
+    })
+    const authMetafield = user.metafields.find(
+      (metafield: any) => metafield.key === 'authToken'
+    )
+    if (!authMetafield) {
+      throw new NonRetriableError('Auth token not found')
+    }
+    await step.run('send-confirmation-message', async () => {
+      const setupUrl = new URL(
+        `/auth/${user.id}/${authMetafield.value}`,
+        env.NEXT_PUBLIC_URL
+      )
+      const msg = `Thank you for signing up for the Super Metroid Winter 2026 Map Rando Tournament. **Please confirm your participation here ASAP**:\n${setupUrl.toString()}\n\nIf you cannot confirm participation, you may be removed from the tournament.\n\nYour Discord username will be displayed on the upcoming bracket. If you would like your display name to be something else for the bracket, please update your username after confirming your participation here:\nhttps://www.inertia.run/account/settings\n\nPlease also make sure you are also signed up to the Discord server to schedule matches and communicate with the admins: https://discord.gg/PXFSzKRH4g\n\nIf you cannot participate in the tournament, please ping or DM the tournament admins to be removed. Thank you!`
+      await InertiaAPI(
+        `/api/tournaments/${tournamentSlug}/users/${user.id}/msg`,
+        {
+          method: 'POST',
+          payload: {
+            msg,
+          },
+        }
+      )
     })
   }
 )

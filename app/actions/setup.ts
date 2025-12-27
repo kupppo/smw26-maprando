@@ -52,3 +52,12 @@ export const setupMatch = async (matchId: string) => {
     },
   })
 }
+
+export const handleConfirmationMessage = async (id: string) => {
+  await inngest.send({
+    name: 'super-metroid-winter-2026-map-rando-tournament/confirmation.send',
+    data: {
+      userId: id,
+    },
+  })
+}
