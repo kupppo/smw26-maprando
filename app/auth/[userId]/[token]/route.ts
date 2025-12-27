@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers'
 import { type NextRequest, NextResponse } from 'next/server'
+import InertiaAPI from '@/lib/inertia'
 
 type Metafield = {
   key: string
@@ -8,27 +9,20 @@ type Metafield = {
 
 export const dynamic = 'force-dynamic'
 
+const fetchAuth = (userId: string) => {
+  const tournamentSlug = process.env.TOURNAMENT_SLUG
+  return InertiaAPI(`/api/tournaments/${tournamentSlug}/users/${userId}`, {
+    method: 'GET',
+  })
+}
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ token: string; userId: string }> }
 ) {
   const { token, userId } = await params
-  const inertiaUrl = process.env.INERTIA_URL
-  const tournamentSlug = process.env.TOURNAMENT_SLUG
-  const inertiaToken = process.env.INERTIA_TOKEN
-  const authReq = await fetch(
-    `${inertiaUrl}/api/tournaments/${tournamentSlug}/users/${userId}`,
-    {
-      headers: {
-        Authorization: `Bearer ${inertiaToken}`,
-      },
-    }
-  )
-  if (!authReq.ok) {
-    return NextResponse.json({ error: 'Failed to fetch user' }, { status: 500 })
-  }
+  const user = await fetchAuth(userId)
 
-  const user = await authReq.json()
   if (!user) {
     return NextResponse.json({ error: 'User not found' }, { status: 404 })
   }
