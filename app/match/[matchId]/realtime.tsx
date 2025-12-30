@@ -4,7 +4,7 @@ import usePartySocket from 'partysocket/react'
 import { useEffect } from 'react'
 import { toast } from 'sonner'
 import useSWR from 'swr'
-import { setFirstPlayer, setRaceMode, setVetoMode } from '@/app/actions/match'
+import { setFirstPlayer, setRaceMode } from '@/app/actions/match'
 import { MatchStates, RaceModes } from '@/app/config/tournament'
 import { LoadingDots } from '@/components/loading-dots'
 import { Button } from '@/components/ui/button'
@@ -75,73 +75,7 @@ const AwaitingSeed = () => {
 }
 
 const disabledModes = (props: any) =>
-  [
-    props.player1Veto,
-    props.player2Veto,
-    props.player1Pick,
-    props.player2Pick,
-  ].filter(Boolean)
-
-const PlayerVeto = (props: any) => {
-  const { firstPlayer, status, userId } = props
-  let picker = false
-  if (status === 'PLAYER_1_VETO' && firstPlayer === userId) {
-    picker = true
-  } else if (status === 'PLAYER_2_VETO' && firstPlayer !== userId) {
-    picker = true
-  }
-
-  const disabled = disabledModes(props)
-
-  const handleSubmit = async (vetoValue: string) => {
-    const toastId = toast('Setting veto...')
-    try {
-      const vetoKey = `player_${props.isFirstPlayer ? '1' : '2'}_veto`
-      await setVetoMode(vetoValue, props.matchId, vetoKey)
-      toast.success('Veto set', { id: toastId })
-      const evt = new CustomEvent('live:update', {
-        detail: { eventName: `match:${vetoKey}` },
-      })
-      document.dispatchEvent(evt)
-    } catch (err: unknown) {
-      const error = err as Error
-      toast.error(error.message, { id: toastId })
-    }
-  }
-  return (
-    <div className="w-full">
-      {picker ? (
-        <>
-          <p className="text-center w-full mb-4">Select a mode to veto</p>
-          <ul className="grid gap-2">
-            {RaceModes.map((mode) => (
-              <li className="w-full" key={mode.slug}>
-                <Button
-                  className={cn(
-                    'w-full block',
-                    disabled.includes(mode.slug) && 'line-through'
-                  )}
-                  disabled={disabled.includes(mode.slug)}
-                  onClick={() => handleSubmit(mode.slug)}
-                  variant="default"
-                >
-                  {mode.name}
-                </Button>
-              </li>
-            ))}
-          </ul>
-        </>
-      ) : (
-        <div className="w-full">
-          <LoadingDots />
-          <p className="text-center mt-4">
-            Waiting for the other player to pick
-          </p>
-        </div>
-      )}
-    </div>
-  )
-}
+  [props.player1Pick, props.player2Pick].filter(Boolean)
 
 const PlayerPick = (props: any) => {
   const { firstPlayer, status, userId } = props
@@ -235,9 +169,6 @@ const getState = (status: string, props: any) => {
       return <AwaitingSeed />
     case 'AWAITING_PLAYER_ASSIGNMENT':
       return <PlayerAssignment {...props} />
-    case 'PLAYER_1_VETO':
-    case 'PLAYER_2_VETO':
-      return <PlayerVeto {...props} />
     case 'PLAYER_1_PICK':
     case 'PLAYER_2_PICK':
       return <PlayerPick {...props} />
@@ -267,13 +198,6 @@ const getViewerState = (status: string, props: any) => {
         </p>
       )
     }
-    case 'PLAYER_1_VETO':
-    case 'PLAYER_2_VETO':
-      return (
-        <p className="text-center block w-full">
-          The players are now making their vetoes
-        </p>
-      )
     case 'PLAYER_1_PICK':
     case 'PLAYER_2_PICK':
       return (
@@ -394,18 +318,6 @@ export default function RealtimeUpdates({
           )}
           <SummaryItem label="P1" value={firstPlayerName} />
           <SummaryItem label="P2" value={secondPlayerName} />
-        </ul>
-        <ul className="flex flex-col gap-y-2 border-foreground/10 border-t-[1px] mt-2 pt-2">
-          <SummaryItem
-            active={data.status === 'PLAYER_1_VETO'}
-            label="P1 Veto"
-            value={getMode(data.player1Veto)}
-          />
-          <SummaryItem
-            active={data.status === 'PLAYER_2_VETO'}
-            label="P2 Veto"
-            value={getMode(data.player2Veto)}
-          />
         </ul>
         <ul className="flex flex-col gap-y-2 border-foreground/10 border-t-[1px] mt-2 pt-2">
           <SummaryItem
