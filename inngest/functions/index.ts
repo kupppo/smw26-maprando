@@ -254,7 +254,7 @@ export const handleModeSelection = inngest.createFunction(
   { id: 'handle-mode-selection' },
   { event: 'super-metroid-winter-2026-map-rando-tournament/mode.select' },
   async ({ event, step }) => {
-    const data = event.data as RaceModeEventData
+    const data = event.data
     await step.run('set-mode-on-racetime', async () => {
       const mode = RaceModes.find((mode) => mode.slug === data.mode)
       if (!mode) {
@@ -273,7 +273,7 @@ export const handleModeSelection = inngest.createFunction(
       await InertiaAPI('/api/racetime/race', {
         method: 'PUT',
         payload: {
-          roomUrl: data.racetimeUrl,
+          roomUrl: data.roomUrl,
           info_bot: displayName,
         },
       })
