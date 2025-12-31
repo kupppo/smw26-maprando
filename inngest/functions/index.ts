@@ -22,10 +22,7 @@ export const handleRaceStart = inngest.createFunction(
   { event: 'super-metroid-winter-2026-map-rando-tournament/race.initiate' },
   async ({ event, step }) => {
     const data = event.data as RaceEventData
-    const matchUrl = new URL(
-      `match/${data.matchId}`,
-      'https://super-metroid-winter-2026-map-rando-tournament.inertia.run'
-    )
+    const matchUrl = new URL(`match/${data.matchId}`, env.NEXT_PUBLIC_URL)
 
     // Get match
     const match = await step.run('get-match', async () => {
