@@ -330,7 +330,7 @@ describe('Inngest', () => {
             method: 'PUT',
             payload: {
               key: 'status',
-              value: 'PLAYER_1_PICK',
+              value: 'PLAYER_2_PICK',
               model: 'match',
               modelId: '1',
             },

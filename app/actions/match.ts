@@ -27,34 +27,6 @@ export const setFirstPlayer = async (playerId: string, matchId: string) => {
   return true
 }
 
-export const setVetoMode = async (
-  modeId: string,
-  matchId: string,
-  key: string
-) => {
-  const newStatus = key === 'player_1_veto' ? 'PLAYER_2_VETO' : 'PLAYER_2_PICK'
-  const url = '/api/metafields'
-  await InertiaAPI(url, {
-    method: 'POST',
-    payload: {
-      model: 'match',
-      modelId: matchId,
-      key,
-      value: modeId,
-    },
-  })
-  await InertiaAPI(url, {
-    method: 'PUT',
-    payload: {
-      model: 'match',
-      modelId: matchId,
-      key: 'status',
-      value: newStatus,
-    },
-  })
-  return true
-}
-
 export const setRaceMode = async (
   modeId: string,
   matchId: string,
@@ -87,7 +59,7 @@ export const setRaceMode = async (
   }
 
   const newStatus =
-    key === 'player_2_pick' ? 'PLAYING_RACE_1' : 'PLAYING_RACE_2'
+    key === 'player_1_pick' ? 'PLAYING_RACE_1' : 'PLAYING_RACE_2'
   await InertiaAPI(url, {
     method: 'PUT',
     payload: {
@@ -174,7 +146,7 @@ export const setS3Veto = async (
 
     // Transition to race based on which pick triggered S3 flow
     const newStatus =
-      pickKey === 'player_2_pick' ? 'PLAYING_RACE_1' : 'PLAYING_RACE_2'
+      pickKey === 'player_1_pick' ? 'PLAYING_RACE_1' : 'PLAYING_RACE_2'
     await InertiaAPI(url, {
       method: 'PUT',
       payload: {

@@ -54,16 +54,16 @@ export const MatchStates = [
     name: 'Player 2 Veto',
   },
   {
-    slug: 'PLAYER_2_PICK',
-    name: 'Player 2 Picks Race 1 Mode',
+    slug: 'PLAYER_1_PICK',
+    name: 'Player 1 Picks Race 1 Mode',
   },
   {
     slug: 'PLAYING_RACE_1',
     name: 'Playing Race 1',
   },
   {
-    slug: 'PLAYER_1_PICK',
-    name: 'Player 1 Picks Race 2 Mode',
+    slug: 'PLAYER_2_PICK',
+    name: 'Player 2 Picks Race 2 Mode',
   },
   {
     slug: 'PLAYING_RACE_2',

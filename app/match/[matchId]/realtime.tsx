@@ -462,20 +462,20 @@ export default function RealtimeUpdates({
         </ul>
         <ul className="flex flex-col gap-y-2 border-foreground/10 border-t-[1px] mt-2 pt-2">
           <SummaryItem
-            active={data.status === 'PLAYER_2_PICK'}
+            active={data.status === 'PLAYER_1_PICK'}
             label="Game 1"
             value={getMode(
-              data.player2Pick,
-              `${secondPlayer ? secondPlayerName : 'P2'} Picks`,
+              data.player1Pick,
+              `${data.firstPlayer ? firstPlayerName : 'P1'} Picks`,
               data.s3SelectedMode
             )}
           />
           <SummaryItem
-            active={data.status === 'PLAYER_1_PICK'}
+            active={data.status === 'PLAYER_2_PICK'}
             label="Game 2"
             value={getMode(
-              data.player1Pick,
-              `${data.firstPlayer ? firstPlayerName : 'P1'} Picks`,
+              data.player2Pick,
+              `${secondPlayer ? secondPlayerName : 'P2'} Picks`,
               data.s3SelectedMode
             )}
           />

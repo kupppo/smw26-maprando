@@ -134,7 +134,7 @@ export const handleRaceStart = inngest.createFunction(
             method: 'PUT',
             payload: {
               key: 'status',
-              value: 'PLAYER_1_PICK',
+              value: 'PLAYER_2_PICK',
               model: 'match',
               modelId: data.matchId,
             },

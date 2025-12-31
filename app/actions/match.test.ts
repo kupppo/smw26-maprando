@@ -78,7 +78,7 @@ describe('Match Actions', () => {
           model: 'match',
           modelId: 'match-1',
           key: 'status',
-          value: 'PLAYING_RACE_1',
+          value: 'PLAYING_RACE_2',
         },
       })
 
@@ -108,7 +108,7 @@ describe('Match Actions', () => {
           model: 'match',
           modelId: 'match-1',
           key: 'status',
-          value: 'PLAYING_RACE_2',
+          value: 'PLAYING_RACE_1',
         },
       })
 
@@ -263,14 +263,14 @@ describe('Match Actions', () => {
         },
       })
 
-      // Should PUT status to PLAYING_RACE_1 (player_2_pick)
+      // Should PUT status to PLAYING_RACE_2 (player_2_pick)
       expect(mockInertiaCall).toHaveBeenNthCalledWith(4, '/api/metafields', {
         method: 'PUT',
         payload: {
           model: 'match',
           modelId: 'match-1',
           key: 'status',
-          value: 'PLAYING_RACE_1',
+          value: 'PLAYING_RACE_2',
         },
       })
 
@@ -311,14 +311,14 @@ describe('Match Actions', () => {
         'https://racetime.gg/room/456'
       )
 
-      // Should PUT status to PLAYING_RACE_2 (player_1_pick)
+      // Should PUT status to PLAYING_RACE_1 (player_1_pick)
       expect(mockInertiaCall).toHaveBeenCalledWith('/api/metafields', {
         method: 'PUT',
         payload: {
           model: 'match',
           modelId: 'match-1',
           key: 'status',
-          value: 'PLAYING_RACE_2',
+          value: 'PLAYING_RACE_1',
         },
       })
 
