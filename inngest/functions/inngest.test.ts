@@ -1,20 +1,19 @@
 import { InngestTestEngine } from '@inngest/test'
 import type { NonRetriableError } from 'inngest'
+import { beforeEach, describe, expect, type Mock, test, vi } from 'vitest'
 import InertiaAPI from '@/lib/inertia'
 import { send as InngestSend } from '@/lib/inngest'
 import { handleRaceStart } from '.'
 
-jest.mock('@/lib/inertia', () => {
+vi.mock('@/lib/inertia', () => {
   return {
-    __esModule: true,
-    default: jest.fn(),
+    default: vi.fn(),
   }
 })
 
-jest.mock('@/lib/inngest', () => {
+vi.mock('@/lib/inngest', () => {
   return {
-    __esModule: true,
-    send: jest.fn(),
+    send: vi.fn(),
   }
 })
 
@@ -182,12 +181,12 @@ const mockIntertiaMatchFactory = ({
 
 describe('Inngest', () => {
   describe('Handle Race Start', () => {
-    const mockInertiaCall = InertiaAPI as jest.MockedFunction<any>
-    const mockInngestCall = InngestSend as jest.MockedFunction<any>
+    const mockInertiaCall = InertiaAPI as Mock
+    const mockInngestCall = InngestSend as Mock
 
     beforeEach(() => {
-      jest.spyOn(console, 'error').mockImplementation(jest.fn())
-      jest.clearAllMocks()
+      vi.spyOn(console, 'error').mockImplementation(() => {})
+      vi.clearAllMocks()
     })
 
     const t = new InngestTestEngine({
@@ -272,14 +271,16 @@ describe('Inngest', () => {
         const match = mockIntertiaMatchFactory({
           matchStatus: 'AWAITING_PLAYER_ASSIGNMENT',
         })
-        mockInertiaCall.mockImplementation((endpoint: string, options: any) => {
-          if (options.method === 'GET') {
-            return Promise.resolve(match)
+        mockInertiaCall.mockImplementation(
+          (_endpoint: string, options: { method: string }) => {
+            if (options.method === 'GET') {
+              return Promise.resolve(match)
+            }
+            if (options.method === 'PUT') {
+              return Promise.resolve({ data: 'PUT response' })
+            }
           }
-          if (options.method === 'PUT') {
-            return Promise.resolve({ data: 'PUT response' })
-          }
-        })
+        )
         await t.executeStep('progress-match', {
           events: [
             {
@@ -301,14 +302,16 @@ describe('Inngest', () => {
         const match = mockIntertiaMatchFactory({
           matchStatus: 'PLAYING_RACE_1',
         })
-        mockInertiaCall.mockImplementation((endpoint: string, options: any) => {
-          if (options.method === 'GET') {
-            return Promise.resolve(match)
+        mockInertiaCall.mockImplementation(
+          (_endpoint: string, options: { method: string }) => {
+            if (options.method === 'GET') {
+              return Promise.resolve(match)
+            }
+            if (options.method === 'PUT') {
+              return Promise.resolve({ data: 'PUT response' })
+            }
           }
-          if (options.method === 'PUT') {
-            return Promise.resolve({ data: 'PUT response' })
-          }
-        })
+        )
         await t.executeStep('progress-match', {
           events: [
             {
@@ -342,17 +345,19 @@ describe('Inngest', () => {
           matchStatus: 'PLAYING_RACE_2',
         })
         mockInngestCall.mockImplementation(() => null)
-        mockInertiaCall.mockImplementation((endpoint: string, options: any) => {
-          if (options.method === 'GET') {
-            return Promise.resolve(match)
+        mockInertiaCall.mockImplementation(
+          (_endpoint: string, options: { method: string }) => {
+            if (options.method === 'GET') {
+              return Promise.resolve(match)
+            }
+            if (options.method === 'POST') {
+              return Promise.resolve({ data: 'POST response' })
+            }
+            if (options.method === 'PUT') {
+              return Promise.resolve({ data: 'PUT response' })
+            }
           }
-          if (options.method === 'POST') {
-            return Promise.resolve({ data: 'POST response' })
-          }
-          if (options.method === 'PUT') {
-            return Promise.resolve({ data: 'PUT response' })
-          }
-        })
+        )
         const { result } = await t.executeStep('set-final-match', {
           events: [
             {
@@ -372,10 +377,10 @@ describe('Inngest', () => {
           'player_2_veto',
         ]
         const previousModes = match.metafields
-          .filter((metafield: any) => selectedKeys.includes(metafield.key))
-          .map((metafield: any) => metafield.value)
+          .filter((metafield) => selectedKeys.includes(metafield.key))
+          .map((metafield) => metafield.value)
 
-        expect(previousModes.includes(result)).toBeFalsy()
+        expect(previousModes.includes(result as string)).toBeFalsy()
 
         expect(mockInertiaCall).toHaveBeenCalledWith(
           '/api/metafields',

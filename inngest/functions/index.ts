@@ -1,5 +1,5 @@
 import { NonRetriableError } from 'inngest'
-import { RaceModes } from '@/app/config/tournament'
+import { RaceModes, S3Modes } from '@/app/config/tournament'
 import { env } from '@/env'
 import InertiaAPI from '@/lib/inertia'
 import { send as inngestSend } from '@/lib/inngest'
@@ -14,6 +14,7 @@ type RaceEventData = {
 type RaceModeEventData = {
   racetimeUrl: string
   mode: string
+  s3Mode?: string
 }
 
 export const handleRaceStart = inngest.createFunction(
@@ -260,12 +261,20 @@ export const handleModeSelection = inngest.createFunction(
         throw new NonRetriableError(`Mode not found: ${data.mode}`)
       }
 
-      // TODO: Set the mode in Racetime not the goal
+      // Build display name, including S3 sub-mode if applicable
+      let displayName = mode.name
+      if (data.mode === 's3-multi-categories' && data.s3Mode) {
+        const s3Mode = S3Modes.find((m) => m.slug === data.s3Mode)
+        if (s3Mode) {
+          displayName = `${mode.name} (${s3Mode.name})`
+        }
+      }
+
       await InertiaAPI('/api/racetime/race', {
         method: 'PUT',
         payload: {
           roomUrl: data.racetimeUrl,
-          goal: mode.slug,
+          info_bot: displayName,
         },
       })
     })

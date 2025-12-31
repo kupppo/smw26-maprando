@@ -4,8 +4,8 @@ import usePartySocket from 'partysocket/react'
 import { useEffect } from 'react'
 import { toast } from 'sonner'
 import useSWR from 'swr'
-import { setFirstPlayer, setRaceMode } from '@/app/actions/match'
-import { MatchStates, RaceModes } from '@/app/config/tournament'
+import { setFirstPlayer, setRaceMode, setS3Veto } from '@/app/actions/match'
+import { MatchStates, RaceModes, S3Modes } from '@/app/config/tournament'
 import { LoadingDots } from '@/components/loading-dots'
 import { Button } from '@/components/ui/button'
 import { CardContent, CardFooter } from '@/components/ui/card'
@@ -143,6 +143,120 @@ const PlayerPick = (props: any) => {
   )
 }
 
+const getS3VetoKey = (status: string): string => {
+  const map: Record<string, string> = {
+    S3_P1_VETO_1: 's3_p1_veto_1',
+    S3_P2_VETO_1: 's3_p2_veto_1',
+    S3_P2_VETO_2: 's3_p2_veto_2',
+    S3_P1_VETO_2: 's3_p1_veto_2',
+  }
+  return map[status] || ''
+}
+
+const getS3VetoedModes = (props: any): string[] =>
+  [props.s3P1Veto1, props.s3P2Veto1, props.s3P2Veto2, props.s3P1Veto2].filter(
+    Boolean
+  )
+
+const S3Veto = (props: any) => {
+  const { firstPlayer, status, userId } = props
+  const isP1Turn = status === 'S3_P1_VETO_1' || status === 'S3_P1_VETO_2'
+  const isP2Turn = status === 'S3_P2_VETO_1' || status === 'S3_P2_VETO_2'
+
+  let isVetoer = false
+  if (isP1Turn && firstPlayer === userId) {
+    isVetoer = true
+  } else if (isP2Turn && firstPlayer !== userId) {
+    isVetoer = true
+  }
+
+  const vetoed = getS3VetoedModes(props)
+  const vetoKey = getS3VetoKey(status)
+  // Determine which pick triggered S3 flow
+  const pickKey =
+    props.player2Pick === 's3-multi-categories'
+      ? 'player_2_pick'
+      : 'player_1_pick'
+
+  const handleSubmit = async (modeSlug: string) => {
+    const toastId = toast('Setting S3 veto...')
+    try {
+      await setS3Veto(
+        modeSlug,
+        props.matchId,
+        vetoKey,
+        pickKey,
+        props.currentRacetimeUrl
+      )
+      toast.success('Veto set', { id: toastId })
+      const evt = new CustomEvent('live:update', {
+        detail: { eventName: `match:${vetoKey}` },
+      })
+      document.dispatchEvent(evt)
+    } catch (err: unknown) {
+      const error = err as Error
+      toast.error(error.message, { id: toastId })
+    }
+  }
+
+  const vetoLabel =
+    status === 'S3_P2_VETO_1' || status === 'S3_P2_VETO_2'
+      ? 'Player 2'
+      : 'Player 1'
+
+  return (
+    <div className="w-full">
+      {isVetoer ? (
+        <>
+          <p className="text-center w-full mb-4">
+            Veto an S3 mode ({vetoLabel})
+          </p>
+          <ul className="grid gap-2">
+            {S3Modes.map((mode) => (
+              <li className="w-full" key={mode.slug}>
+                <Button
+                  className={cn(
+                    'w-full block',
+                    vetoed.includes(mode.slug) && 'line-through'
+                  )}
+                  disabled={vetoed.includes(mode.slug)}
+                  onClick={() => handleSubmit(mode.slug)}
+                  variant={vetoed.includes(mode.slug) ? 'outline' : 'default'}
+                >
+                  {mode.name}
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : (
+        <div className="w-full">
+          <LoadingDots />
+          <p className="text-center mt-4 mb-4">
+            Waiting for {vetoLabel} to veto an S3 mode
+          </p>
+          <ul className="grid gap-2 opacity-50">
+            {S3Modes.map((mode) => (
+              <li className="w-full" key={mode.slug}>
+                <Button
+                  className={cn(
+                    'w-full block',
+                    vetoed.includes(mode.slug) && 'line-through'
+                  )}
+                  disabled
+                  variant={vetoed.includes(mode.slug) ? 'outline' : 'default'}
+                >
+                  {mode.name}
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  )
+}
+
 const Race = (props: any) => {
   const raceNum = props.status.split('_')[2]
   return (
@@ -172,6 +286,11 @@ const getState = (status: string, props: any) => {
     case 'PLAYER_1_PICK':
     case 'PLAYER_2_PICK':
       return <PlayerPick {...props} />
+    case 'S3_P1_VETO_1':
+    case 'S3_P2_VETO_1':
+    case 'S3_P2_VETO_2':
+    case 'S3_P1_VETO_2':
+      return <S3Veto {...props} />
     case 'PLAYING_RACE_1':
     case 'PLAYING_RACE_2':
       return <Race {...props} />
@@ -205,10 +324,21 @@ const getViewerState = (status: string, props: any) => {
           The players are now making their picks
         </p>
       )
+    case 'S3_P1_VETO_1':
+    case 'S3_P2_VETO_1':
+    case 'S3_P2_VETO_2':
+    case 'S3_P1_VETO_2':
+      return (
+        <p className="text-center block w-full">
+          The players are vetoing S3 sub-modes
+        </p>
+      )
     case 'PLAYING_RACE_1':
     case 'PLAYING_RACE_2':
       return <Race {...props} />
     case 'PLAYING_RACE_3':
+      return null
+    default:
       return null
   }
 }
@@ -218,7 +348,11 @@ async function fetcher(key: string) {
   return res.json()
 }
 
-const getMode = (slug: string, placeholder?: string) => {
+const getMode = (
+  slug: string,
+  placeholder?: string,
+  s3Mode?: string | null
+) => {
   try {
     const mode = RaceModes.find((mode) => mode.slug === slug)
     if (!mode) {
@@ -226,6 +360,13 @@ const getMode = (slug: string, placeholder?: string) => {
         return <span className="italic text-foreground/20">{placeholder}</span>
       }
       throw new Error('Mode not found')
+    }
+    // If S3 Multi Categories and we have a selected S3 mode, show it
+    if (slug === 's3-multi-categories' && s3Mode) {
+      const s3ModeObj = S3Modes.find((m) => m.slug === s3Mode)
+      if (s3ModeObj) {
+        return `${mode.name} (${s3ModeObj.name})`
+      }
     }
     return mode.name
   } catch (err) {
@@ -325,7 +466,8 @@ export default function RealtimeUpdates({
             label="Game 1"
             value={getMode(
               data.player2Pick,
-              `${secondPlayer ? secondPlayerName : 'P2'} Picks`
+              `${secondPlayer ? secondPlayerName : 'P2'} Picks`,
+              data.s3SelectedMode
             )}
           />
           <SummaryItem
@@ -333,7 +475,8 @@ export default function RealtimeUpdates({
             label="Game 2"
             value={getMode(
               data.player1Pick,
-              `${data.firstPlayer ? firstPlayerName : 'P1'} Picks`
+              `${data.firstPlayer ? firstPlayerName : 'P1'} Picks`,
+              data.s3SelectedMode
             )}
           />
           <SummaryItem

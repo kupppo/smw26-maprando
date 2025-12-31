@@ -77,6 +77,21 @@ export const parseMatchData = (match: any, userId: string | null) => {
       null,
     game3Mode:
       match.metafields.find((m: any) => m.key === 'game_3_mode')?.value || null,
+    s3P1Veto1:
+      match.metafields.find((m: any) => m.key === 's3_p1_veto_1')?.value ||
+      null,
+    s3P2Veto1:
+      match.metafields.find((m: any) => m.key === 's3_p2_veto_1')?.value ||
+      null,
+    s3P2Veto2:
+      match.metafields.find((m: any) => m.key === 's3_p2_veto_2')?.value ||
+      null,
+    s3P1Veto2:
+      match.metafields.find((m: any) => m.key === 's3_p1_veto_2')?.value ||
+      null,
+    s3SelectedMode:
+      match.metafields.find((m: any) => m.key === 's3_selected_mode')?.value ||
+      null,
     racers: {
       [match.racers[0].id]: match.racers[0].user.name,
       [match.racers[1].id]: match.racers[1].user.name,
