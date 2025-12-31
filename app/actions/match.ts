@@ -15,15 +15,6 @@ export const setFirstPlayer = async (playerId: string, matchId: string) => {
       value: playerId,
     },
   })
-  await InertiaAPI(url, {
-    method: 'PUT',
-    payload: {
-      model: 'match',
-      modelId: matchId,
-      key: 'status',
-      value: 'PLAYER_1_VETO',
-    },
-  })
   return true
 }
 
