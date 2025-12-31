@@ -1,6 +1,8 @@
 import { createEnv } from '@t3-oss/env-nextjs'
 import { z } from 'zod'
 
+const isVercel = process.env.VERCEL === '1'
+
 export const env = createEnv({
   server: {
     ADMINS: z.string(),
@@ -17,7 +19,9 @@ export const env = createEnv({
     ADMINS: process.env.ADMINS,
     INERTIA_TOKEN: process.env.INERTIA_TOKEN,
     INERTIA_URL: process.env.INERTIA_URL,
-    NEXT_PUBLIC_URL: process.env.NEXT_PUBLIC_URL,
+    NEXT_PUBLIC_URL:
+      process.env.NEXT_PUBLIC_URL ||
+      (isVercel && `https://${process.env.VERCEL_URL}`),
     NEXT_PUBLIC_PARTYKIT_HOST: process.env.NEXT_PUBLIC_PARTYKIT_HOST,
     SIGNING_SECRET: process.env.SIGNING_SECRET,
     TOURNAMENT_SLUG: process.env.TOURNAMENT_SLUG,
