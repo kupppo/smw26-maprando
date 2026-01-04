@@ -152,7 +152,7 @@ export const handleRaceStart = inngest.createFunction(
           if (race.scheduledAt) {
             try {
               const scheduledTime = new Date(race.scheduledAt)
-              scheduledTime.setMinutes(scheduledTime.getMinutes() - 10)
+              scheduledTime.setMinutes(scheduledTime.getMinutes() - 15)
               return scheduledTime.toISOString()
             } catch (err) {
               return null
@@ -174,7 +174,7 @@ export const handleRaceStart = inngest.createFunction(
             },
           })
         })
-        await step.sleepUntil('wait-until-10m-prior', awaitScheduledTime)
+        await step.sleepUntil('wait-until-15m-prior', awaitScheduledTime)
       }
 
       await step.run('send-msg', async () => {
