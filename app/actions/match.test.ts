@@ -285,7 +285,7 @@ describe('Match Actions', () => {
       })
     })
 
-    test('s3_p1_veto_2 with player_1_pick transitions to PLAYING_RACE_2', async () => {
+    test('s3_p1_veto_2 with player_1_pick transitions to PLAYING_RACE_1', async () => {
       const mockMatch = {
         metafields: [
           { key: 's3_p1_veto_1', value: 'no-objectives' },
@@ -329,6 +329,56 @@ describe('Match Actions', () => {
           mode: 's3-multi-categories',
           s3Mode: 'vhsig',
           roomUrl: 'https://racetime.gg/room/456',
+        },
+      })
+    })
+
+    test('s3_p1_veto_2 with game_3_mode transitions to PLAYING_RACE_3', async () => {
+      const mockMatch = {
+        metafields: [
+          { key: 's3_p1_veto_1', value: 'no-objectives' },
+          { key: 's3_p2_veto_1', value: 'mo-nm2' },
+          { key: 's3_p2_veto_2', value: 'double-suit' },
+        ],
+      }
+
+      mockInertiaCall.mockImplementation(
+        (endpoint: string, options: { method: string }) => {
+          if (options.method === 'GET') {
+            return Promise.resolve(mockMatch)
+          }
+          return Promise.resolve({ data: 'ok' })
+        }
+      )
+
+      const result = await setS3Veto(
+        'gravity',
+        'match-1',
+        's3_p1_veto_2',
+        'game_3_mode',
+        'https://racetime.gg/room/789'
+      )
+
+      expect(result).toEqual('vhsig')
+
+      // Should PUT status to PLAYING_RACE_3 (game_3_mode)
+      expect(mockInertiaCall).toHaveBeenCalledWith('/api/metafields', {
+        method: 'PUT',
+        payload: {
+          model: 'match',
+          modelId: 'match-1',
+          key: 'status',
+          value: 'PLAYING_RACE_3',
+        },
+      })
+
+      // Should fire mode.select with s3Mode
+      expect(mockInngestSend).toHaveBeenCalledWith({
+        name: 'super-metroid-winter-2026-map-rando-tournament/mode.select',
+        data: {
+          mode: 's3-multi-categories',
+          s3Mode: 'vhsig',
+          roomUrl: 'https://racetime.gg/room/789',
         },
       })
     })

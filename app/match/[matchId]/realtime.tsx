@@ -158,6 +158,16 @@ const getS3VetoedModes = (props: any): string[] =>
     Boolean
   )
 
+const getS3PickKey = (props: any): string => {
+  if (props.player2Pick === 's3-multi-categories') {
+    return 'player_2_pick'
+  }
+  if (props.player1Pick === 's3-multi-categories') {
+    return 'player_1_pick'
+  }
+  return 'game_3_mode'
+}
+
 const S3Veto = (props: any) => {
   const { firstPlayer, status, userId } = props
   const isP1Turn = status === 'S3_P1_VETO_1' || status === 'S3_P1_VETO_2'
@@ -172,11 +182,7 @@ const S3Veto = (props: any) => {
 
   const vetoed = getS3VetoedModes(props)
   const vetoKey = getS3VetoKey(status)
-  // Determine which pick triggered S3 flow
-  const pickKey =
-    props.player2Pick === 's3-multi-categories'
-      ? 'player_2_pick'
-      : 'player_1_pick'
+  const pickKey = getS3PickKey(props)
 
   const handleSubmit = async (modeSlug: string) => {
     const toastId = toast('Setting S3 veto...')
@@ -481,7 +487,13 @@ export default function RealtimeUpdates({
           />
           <SummaryItem
             label="Game 3"
-            value={getMode(data.game3Mode, 'Randomly Selected')}
+            value={getMode(
+              data.game3Mode,
+              'Randomly Selected',
+              data.game3Mode === 's3-multi-categories'
+                ? data.s3SelectedMode
+                : null
+            )}
           />
         </ul>
       </CardContent>

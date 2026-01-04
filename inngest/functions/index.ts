@@ -85,6 +85,29 @@ export const handleRaceStart = inngest.createFunction(
           },
         })
 
+        // If s3-multi-categories, go to S3 veto flow instead of starting race
+        if (randomMode.slug === 's3-multi-categories') {
+          const msg = `This race will be S3 Multi Categories. Players must now veto sub-modes: ${matchUrl.toString()}`
+          await InertiaAPI('/api/racetime/race/msg', {
+            method: 'POST',
+            payload: {
+              msg,
+              roomUrl: data.racetimeUrl,
+            },
+          })
+
+          await InertiaAPI('/api/metafields', {
+            method: 'PUT',
+            payload: {
+              key: 'status',
+              value: 'S3_P1_VETO_1',
+              model: 'match',
+              modelId: data.matchId,
+            },
+          })
+          return randomMode.slug
+        }
+
         await inngestSend({
           name: 'super-metroid-winter-2026-map-rando-tournament/mode.select',
           data: {

@@ -145,8 +145,16 @@ export const setS3Veto = async (
     })
 
     // Transition to race based on which pick triggered S3 flow
-    const newStatus =
-      pickKey === 'player_1_pick' ? 'PLAYING_RACE_1' : 'PLAYING_RACE_2'
+    const getPlayingStatus = (key: string): string => {
+      if (key === 'player_1_pick') {
+        return 'PLAYING_RACE_1'
+      }
+      if (key === 'player_2_pick') {
+        return 'PLAYING_RACE_2'
+      }
+      return 'PLAYING_RACE_3'
+    }
+    const newStatus = getPlayingStatus(pickKey)
     await InertiaAPI(url, {
       method: 'PUT',
       payload: {

@@ -17,6 +17,15 @@ vi.mock('@/lib/inngest', () => {
   }
 })
 
+vi.mock('@/env', () => {
+  return {
+    env: {
+      NEXT_PUBLIC_URL: 'http://localhost:3000',
+      TOURNAMENT_SLUG: 'test-tournament',
+    },
+  }
+})
+
 type MatchOpts = {
   matchStatus?: string
 }
@@ -340,10 +349,18 @@ describe('Inngest', () => {
     })
 
     describe('Set Final Match', () => {
-      test('Final match', async () => {
-        const match = mockIntertiaMatchFactory({
-          matchStatus: 'PLAYING_RACE_2',
-        })
+      test('Final match (non-S3 mode)', async () => {
+        // Set up match where s3-multi-categories is vetoed, leaving only item-draft or random-objectives
+        const match = {
+          ...mockIntertiaMatchFactory({ matchStatus: 'PLAYING_RACE_2' }),
+          metafields: [
+            { key: 'status', value: 'PLAYING_RACE_2' },
+            { key: 'player_1_pick', value: 'item-draft' },
+            { key: 'player_2_pick', value: 's3-multi-categories' },
+            { key: 'player_1_veto', value: 'item-draft' },
+            { key: 'player_2_veto', value: 's3-multi-categories' },
+          ],
+        }
         mockInngestCall.mockImplementation(() => null)
         mockInertiaCall.mockImplementation(
           (_endpoint: string, options: { method: string }) => {
@@ -370,17 +387,9 @@ describe('Inngest', () => {
             },
           ],
         })
-        const selectedKeys = [
-          'player_1_pick',
-          'player_2_pick',
-          'player_1_veto',
-          'player_2_veto',
-        ]
-        const previousModes = match.metafields
-          .filter((metafield) => selectedKeys.includes(metafield.key))
-          .map((metafield) => metafield.value)
 
-        expect(previousModes.includes(result as string)).toBeFalsy()
+        // Result should be random-objectives (the only non-vetoed, non-picked mode)
+        expect(result).toEqual('random-objectives')
 
         expect(mockInertiaCall).toHaveBeenCalledWith(
           '/api/metafields',
@@ -408,6 +417,80 @@ describe('Inngest', () => {
               value: 'PLAYING_RACE_3',
               model: 'match',
             }),
+          })
+        )
+      })
+
+      test('Final match with s3-multi-categories triggers S3 veto flow', async () => {
+        // Set up match where s3-multi-categories is the only remaining mode
+        const match = {
+          ...mockIntertiaMatchFactory({ matchStatus: 'PLAYING_RACE_2' }),
+          metafields: [
+            { key: 'status', value: 'PLAYING_RACE_2' },
+            { key: 'player_1_pick', value: 'item-draft' },
+            { key: 'player_2_pick', value: 'random-objectives' },
+            { key: 'player_1_veto', value: 'item-draft' },
+            { key: 'player_2_veto', value: 'random-objectives' },
+          ],
+        }
+        mockInngestCall.mockImplementation(() => null)
+        mockInertiaCall.mockImplementation(
+          (_endpoint: string, options: { method: string }) => {
+            if (options.method === 'GET') {
+              return Promise.resolve(match)
+            }
+            if (options.method === 'POST') {
+              return Promise.resolve({ data: 'POST response' })
+            }
+            if (options.method === 'PUT') {
+              return Promise.resolve({ data: 'PUT response' })
+            }
+          }
+        )
+
+        const { result } = await t.executeStep('set-final-match', {
+          events: [
+            {
+              name: 'super-metroid-winter-2026-map-rando-tournament/race.initiate',
+              data: {
+                matchId: '1',
+                raceId: '3',
+                racetimeUrl: 'http://racetime.localhost/sm/123',
+              },
+            },
+          ],
+        })
+
+        expect(result).toEqual('s3-multi-categories')
+
+        // Should POST game_3_mode as s3-multi-categories
+        expect(mockInertiaCall).toHaveBeenCalledWith(
+          '/api/metafields',
+          expect.objectContaining({
+            method: 'POST',
+            payload: {
+              key: 'game_3_mode',
+              value: 's3-multi-categories',
+              model: 'match',
+              modelId: '1',
+            },
+          })
+        )
+
+        // Should NOT fire mode.select (happens after S3 vetoes complete)
+        expect(mockInngestCall).not.toHaveBeenCalled()
+
+        // Should PUT status to S3_P1_VETO_1 (start S3 veto flow)
+        expect(mockInertiaCall).toHaveBeenLastCalledWith(
+          '/api/metafields',
+          expect.objectContaining({
+            method: 'PUT',
+            payload: {
+              key: 'status',
+              value: 'S3_P1_VETO_1',
+              model: 'match',
+              modelId: '1',
+            },
           })
         )
       })
