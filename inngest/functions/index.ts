@@ -188,7 +188,7 @@ export const handleRaceStart = inngest.createFunction(
       if (awaitScheduledTime) {
         await step.run('send-initial-message', async () => {
           const msg =
-            'The options for this race will be sent to this room 10 minutes prior to the scheduled time.'
+            'The options for this race will be sent to this room 15 minutes prior to the scheduled time.'
           await InertiaAPI('/api/racetime/race/msg', {
             method: 'POST',
             payload: {
